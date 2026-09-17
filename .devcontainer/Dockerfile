@@ -1,5 +1,7 @@
 ARG VARIANT=ubuntu-24.04
-FROM mcr.microsoft.com/vscode/devcontainers/base:${VARIANT}
+# amd64 is pinned because klayout ships no Linux arm64 wheel; building it from
+# source needs more RAM than this machine has.
+FROM --platform=linux/amd64 mcr.microsoft.com/vscode/devcontainers/base:${VARIANT}
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PDK_ROOT=/home/vscode/ttsetup/pdk

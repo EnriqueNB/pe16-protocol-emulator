@@ -105,14 +105,16 @@ dialect/    MLIR `pe` dialect, passes (timing analysis, path balancing), transla
 rtl/core/   shared, technology-independent Verilog (pe_top, pe_lane, pe_decode, pe_tickgrid, pe_spi_host)
 rtl/tech/asic/pe_mem.v   latch RAM or IHP SRAM
 rtl/tech/fpga/pe_mem.v   inferred BRAM
-tt/         tt_um_pe.v (Tiny Tapeout top, shared by the FPGA build)
+src/        tt_um_pe16.v (Tiny Tapeout top, shared by the FPGA build)
 fpga/       top_tangnano20k.v (PLL, reset, tristates, pins), .cst, build scripts
 tb/         cocotb tests, BFMs, random program generator, ISS scoreboard
 formal/     SymbiYosys configs + properties (per-instruction + microarchitecture)
 fw/         RP2040 host/loader firmware
 ```
 
-Tiny Tapeout requires `info.yaml` and `src/` at the root; keep the template structure working and point it at `rtl/`.
+Tiny Tapeout requires `info.yaml` and `src/` at the root, and its `src/` file list must name each source separately (mirror it in `PROJECT_SOURCES` in `test/Makefile`). The Tiny Tapeout top lives in `src/` and pulls in `rtl/`; `test/` holds the TT-template cocotb harness (`tb.v`), while `tb/` holds the project's own verification.
+
+`tt/` at the root is **not ours**: the dev container's `postStartCommand` copies `tt-support-tools` there, and `tt/tech/<pdk>/def/` is where the tile DEF templates live. It is gitignored. Run it as `python tt/tt_tool.py --ihp ...`; without `--ihp` it silently defaults to sky130A and emits the wrong die area.
 
 ## RTL rules (portability FPGA ↔ ASIC)
 
@@ -121,7 +123,7 @@ Tiny Tapeout requires `info.yaml` and `src/` at the root; keep the template stru
 - **Open-drain:** implemented as output-enable (drive 0 with OE on, or release).
 - **Portability:** no vendor primitives, no `initial` for state, no `ifdef FPGA` in the core. Technology differences go only in `rtl/tech/*` and are selected by the file list.
 - **Memory:** `pe_mem` has a precisely defined port behaviour (synchronous read, 1-cycle latency). Both implementations are tested against the same testbench.
-- **Tiny Tapeout interface:** `ui_in`, `uo_out`, `uio_in`/`uio_out`/`uio_oe`, `ena`, `clk`, `rst_n`. No `inout` in `tt/` or `rtl/`.
+- **Tiny Tapeout interface:** `ui_in`, `uo_out`, `uio_in`/`uio_out`/`uio_oe`, `ena`, `clk`, `rst_n`. No `inout` in `src/` or `rtl/`.
 
 ## Verification strategy (a headline feature)
 

@@ -7,7 +7,7 @@
     "context": ".."
   },
   "runArgs": [
-    "--memory=10GB"
+    "--memory=4GB"
   ],
   "customizations": {
     "vscode": {
